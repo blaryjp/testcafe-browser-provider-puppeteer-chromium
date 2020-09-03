@@ -27,16 +27,17 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@babel/runtime": "^7.8.4",
-    "prettier": "^1.19.1",
-    "puppeteer": "1.19.0",
-    "testcafe-browser-tools": "^2.0.8"
+    "@babel/runtime": "^7.11.2",
+    "prettier": "^2.1.1",
+    "puppeteer": "5.2.1",
+    "puppeteer-har": "^1.1.2",
+    "testcafe-browser-tools": "^2.0.13"
   },
   "devDependencies": {
-    "@babel/core": "^7.8.4",
-    "@babel/plugin-transform-runtime": "^7.8.3",
-    "@babel/preset-env": "^7.8.4",
-    "babel-eslint": "^10.0.3",
+    "@babel/core": "^7.11.5",
+    "@babel/plugin-transform-runtime": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
+    "babel-eslint": "^10.1.0",
     "babel-plugin-add-module-exports": "^1.0.2",
     "del": "^5.1.0",
     "gulp": "^4.0.2",

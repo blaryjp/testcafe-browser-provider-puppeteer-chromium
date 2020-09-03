@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { resolve } from 'path';
 import puppeteer from 'puppeteer';
+import PuppeteerHar from 'puppeteer-har';
 import browserTools from 'testcafe-browser-tools';
 import testRunTracker from 'testcafe/lib/api/test-run-tracker';
 
@@ -36,6 +37,7 @@ function combineLaunchOptions(defaultLaunchOptions, launchOptionsFromConfig) {
 export default {
   browsers: {},
   pages: {},
+  har: {},
   screenSizes: {},
 
   // Multiple browsers support
@@ -66,6 +68,7 @@ export default {
     let appMode = false;
     let browser = this.browsers[id];
     let disableInfoBars = false;
+    let har = false;
 
     //  Launch the browser if not yet launched
     if (!browser) {
@@ -103,6 +106,11 @@ export default {
             launchOptions.args.push('--no-default-browser-check');
             launchOptions.ignoreDefaultArgs.push('--enable-automation');
           }
+
+          // if HAR
+          if (browserConfiguration.har) {
+            har = browserConfiguration.har;
+          }
         } catch (err) {
           throw new Error('Error reading the launch options from the config file!' + err);
         }
@@ -114,6 +122,13 @@ export default {
     //  Open the TestCafe proxy index page
     const pages = await browser.pages();
     const page = pages[0];
+
+    // Capture HAR
+    if (har) {
+      this.har[id] = har;
+      this.har[id].provider = new PuppeteerHar(page);
+      await this.har[id].provider.start();
+    }
 
     //  If the browser is started in application mode, the pageUrl is already opened
     //  so this step can then be skipped
@@ -138,6 +153,17 @@ export default {
   },
 
   async closeBrowser(id) {
+    if (this.har[id]) {
+      const harLogData = await this.har[id].provider.stop();
+      if (this.har[id].file) {
+        await this.writeHar(harLogData, this.har[id].file);
+      }
+      if (this.har[id].html) {
+        await this.writeHarHtml(harLogData, this.har[id].html);
+      }
+      delete this.har[id];
+    }
+
     await this.pages[id].close();
     delete this.pages[id];
 
@@ -184,5 +210,14 @@ export default {
     const id = testRun.browserConnection.id;
 
     await this.pages[id].hover(selector);
+  },
+
+  async writeHar(harLogData, outputFile) {
+    fs.writeFileSync(resolve(process.cwd(), outputFile), JSON.stringify(harLogData));
+  },
+
+  async writeHarHtml(harLogData, outputFile) {
+    const html = fs.readFileSync(resolve(__dirname, 'har.html'), { encoding: 'utf-8' });
+    fs.writeFileSync(resolve(process.cwd(), outputFile), html.replace('{harLogData}', JSON.stringify(harLogData)));
   },
 };

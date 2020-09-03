@@ -20,9 +20,14 @@ gulp.task(
   }),
 );
 
+gulp.task('copy', function() {
+  return gulp.src('src/har.html')
+    .pipe(gulp.dest('lib'));
+});
+
 gulp.task(
   'build',
-  gulp.series(['clean', 'lint'], function() {
+  gulp.series(['clean', 'lint', 'copy'], function() {
     return gulp
       .src('src/**/*.js')
       .pipe(babel())
